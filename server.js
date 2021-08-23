@@ -1,6 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const dbConfig = require("./app/config/db.config.js");
+const fs = require("fs");
 
 const path = __dirname + "/app/views/";
 
@@ -8,8 +10,10 @@ const app = express();
 
 app.use(express.static(path));
 
+const cors_url = "http://localhost:8081";
+
 var corsOptions = {
-  origin: "http://localhost:8081",
+  origin: cors_url,
 };
 
 app.use(cors(corsOptions));
@@ -21,12 +25,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const db = require("./app/models");
-
-db.sequelize.sync();
+//db.sequelize.sync();
 // // drop the table if it already exists
-// db.sequelize.sync({ force: true }).then(() => {
-//   console.log("Drop and re-sync db.");
-// });
+db.sequelize.sync({ force: true }).then(() => {
+  console.log("Drop and re-sync db.");
+
+  var sql_string = fs.readFileSync("./scubyt.sql", "utf8");
+  db.sequelize.query(sql_string);
+});
 
 // simple route
 app.get("/", (req, res) => {
